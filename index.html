@@ -410,19 +410,19 @@
 
   <nav class="stepper" id="stepper">
     <button type="button" class="stepper-item active" data-step="1">
-      <span class="stepper-circle">1</span>
+      <span class="stepper-circle">١</span>
       <span class="stepper-label">المعلومات</span>
     </button>
     <button type="button" class="stepper-item" data-step="2">
-      <span class="stepper-circle">2</span>
+      <span class="stepper-circle">٢</span>
       <span class="stepper-label">الأعمال</span>
     </button>
     <button type="button" class="stepper-item" data-step="3">
-      <span class="stepper-circle">3</span>
+      <span class="stepper-circle">٣</span>
       <span class="stepper-label">المعدات</span>
     </button>
     <button type="button" class="stepper-item" data-step="4">
-      <span class="stepper-circle">4</span>
+      <span class="stepper-circle">٤</span>
       <span class="stepper-label">الحالة</span>
     </button>
   </nav>
@@ -536,6 +536,8 @@
 
   var STORAGE_KEY = 'ahl_aljazeera_daily_report_v1';
   var TOTAL_STEPS = 4;
+  // إذا كان نص التقرير أطول من هذا الحد، نعتمد النسخ بدل الرابط
+  var WA_MAX_CHARS = 3000;
   var currentStep = 1;
   var saveTimer = null;
 
@@ -555,6 +557,27 @@
     return !String(str).replace(/[\s\u200b\u200e\u200f\ufeff\u00a0]/g, '').length;
   }
 
+  /* [إصلاح 12] توحيد الأرقام: يقبل لاتيني/هندي ويُخرج بالأرقام الهندية (٣٫٥) */
+  function normNum(str) {
+    if (str == null) return '';
+    var s = String(str);
+    s = s.replace(/[\u0660-\u0669]/g, function (ch) { return String(ch.charCodeAt(0) - 0x0660); });
+    s = s.replace(/[\u06F0-\u06F9]/g, function (ch) { return String(ch.charCodeAt(0) - 0x06F0); });
+    s = s.replace(/[\u066B\u066C\u060C,]/g, '.'); // ٫ ٬ ، ,  ← إلى نقطة داخلياً
+    s = s.replace(/[^0-9.]/g, '');
+    // اسمح بنقطة عشرية واحدة فقط
+    var i = s.indexOf('.');
+    if (i !== -1) s = s.slice(0, i + 1) + s.slice(i + 1).replace(/\./g, '');
+    // إخراج بالأرقام الهندية والفاصلة العربية
+    s = s.replace(/[0-9]/g, function (d) { return String.fromCharCode(0x0660 + Number(d)); });
+    s = s.replace(/\./g, '\u066B');
+    return s;
+  }
+
+  function toHindi(str) {
+    return String(str).replace(/[0-9]/g, function (d) { return String.fromCharCode(0x0660 + Number(d)); });
+  }
+
   function formatDate(iso) {
     if (!iso) return '—';
     var d = new Date(iso + 'T00:00:00');
@@ -563,55 +586,67 @@
     var dd = String(d.getDate()).padStart(2, '0');
     var mm = String(d.getMonth() + 1).padStart(2, '0');
     var yyyy = d.getFullYear();
-    return days[d.getDay()] + ' ' + dd + '/' + mm + '/' + yyyy;
+    return days[d.getDay()] + ' ' + toHindi(dd + '/' + mm + '/' + yyyy);
   }
 
   var toastTimer = null;
-  function showToast(msg) {
+  function showToast(msg, ms) {
     var t = document.getElementById('toast');
     if (!t) { try { alert(msg); } catch(e){} return; }
     t.textContent = msg;
     t.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2600);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, ms || 2600);
   }
 
   /* =========================================================
-     ROBUST TAP BINDING — يحل مشكلة "أول نقرة تُغلق الكيبورد"
+     [إصلاح 1] ربط الضغط: pointerup فقط (+ click للوحة المفاتيح)
+     - لا يوجد preventDefault، فلا يتعطل التمرير
+     - تجاهل الضغطة إذا تحرك الإصبع (تمرير)
+     - مهلة موحدة تمنع التنفيذ المزدوج
      ========================================================= */
   function attachTap(el, handler) {
     if (!el) return;
     var lastRun = 0;
-    function run(e) {
-      if (e) {
-        if (e.cancelable) { try { e.preventDefault(); } catch(err){} }
-        try { e.stopPropagation(); } catch(err){}
-      }
-      var now = Date.now();
-      if (now - lastRun < 320) return;
-      lastRun = now;
+    var startX = 0, startY = 0, moved = false;
 
-      // أغلق لوحة المفاتيح إن كانت مفتوحة
+    function run() {
+      var now = Date.now();
+      if (now - lastRun < 400) return;
+      lastRun = now;
       try {
         if (document.activeElement && document.activeElement.blur) {
           document.activeElement.blur();
         }
       } catch (err) {}
-
       handler();
     }
-    try {
-      el.addEventListener('touchend', run, { passive: false });
-    } catch (err) {
-      el.addEventListener('touchend', run, false);
+
+    if (window.PointerEvent) {
+      el.addEventListener('pointerdown', function (e) {
+        startX = e.clientX; startY = e.clientY; moved = false;
+      });
+      el.addEventListener('pointermove', function (e) {
+        if (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10) moved = true;
+      });
+      el.addEventListener('pointerup', function () {
+        if (moved) return;
+        run();
+      });
     }
+    // click: يغطي لوحة المفاتيح والمتصفحات القديمة؛ المهلة تمنع التكرار
     el.addEventListener('click', run);
-    el.addEventListener('pointerup', run);
   }
 
   function saveState() {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(doSave, 250);
+  }
+
+  /* [إصلاح 2] حفظ فوري */
+  function saveNow() {
+    clearTimeout(saveTimer);
+    doSave();
   }
 
   function doSave() {
@@ -669,7 +704,7 @@
       '<div class="grid2">' +
         '<div class="field">' +
           '<label>الكمية المنجزة</label>' +
-          '<input type="number" inputmode="decimal" step="any" min="0" class="act-qty" placeholder="0">' +
+          '<input type="text" inputmode="decimal" autocomplete="off" class="act-qty num-field" placeholder="٠">' +
         '</div>' +
         '<div class="field">' +
           '<label>الوحدة</label>' +
@@ -690,7 +725,7 @@
 
     $('.act-name', el).value = data.name || '';
     $('.act-workers', el).value = data.workers || '';
-    $('.act-qty', el).value = data.qty || '';
+    $('.act-qty', el).value = normNum(data.qty || '');
     $('.act-unit-other', el).value = data.unitOther || '';
 
     var sel = $('.act-unit', el);
@@ -728,7 +763,7 @@
   function refreshActivities() {
     var cards = $$('#activities .item-card');
     cards.forEach(function (c, i) {
-      $('.item-badge', c).textContent = 'نشاط ' + (i + 1);
+      $('.item-badge', c).textContent = 'نشاط ' + toHindi(i + 1);
     });
     var emptyEl = $('#activitiesEmpty');
     if (emptyEl) emptyEl.classList.toggle('hidden', cards.length > 0);
@@ -774,12 +809,12 @@
       '</div>' +
       '<div class="field hours-wrap hidden">' +
         '<label>عدد ساعات العمل</label>' +
-        '<input type="number" inputmode="decimal" step="any" min="0" class="mch-hours" placeholder="0">' +
+        '<input type="text" inputmode="decimal" autocomplete="off" class="mch-hours num-field" placeholder="٠">' +
       '</div>';
 
     $('.mch-desc', el).value = data.desc || '';
     $('.mch-op', el).value = data.op || '';
-    $('.mch-hours', el).value = data.hours || '';
+    $('.mch-hours', el).value = normNum(data.hours || '');
 
     var typeSel = $('.mch-type', el);
     if (data.type) {
@@ -825,7 +860,7 @@
   function refreshMachines() {
     var cards = $$('#machines .item-card');
     cards.forEach(function (c, i) {
-      $('.item-badge', c).textContent = 'معدة ' + (i + 1);
+      $('.item-badge', c).textContent = 'معدة ' + toHindi(i + 1);
     });
     var emptyEl = $('#machinesEmpty');
     if (emptyEl) emptyEl.classList.toggle('hidden', cards.length > 0);
@@ -882,7 +917,7 @@
 
     try { window.scrollTo(0, 0); } catch (e) {}
 
-    saveState();
+    saveNow();
   }
 
   function markInvalid(el) {
@@ -904,7 +939,6 @@
 
       var d = document.getElementById('date');
       if (d && !d.value) {
-        // ملء تلقائي — بدل إظهار خطأ
         d.value = todayISO();
       }
 
@@ -925,7 +959,7 @@
       for (var i = 0; i < cards.length; i++) {
         var nameEl = $('.act-name', cards[i]);
         if (nameEl && isBlank(nameEl.value)) {
-          showToast('يرجى إدخال اسم النشاط رقم ' + (i + 1));
+          showToast('يرجى إدخال اسم النشاط رقم ' + toHindi(i + 1));
           markInvalid(nameEl);
           return false;
         }
@@ -976,7 +1010,7 @@
         var workers = workersRaw.split('\n')
           .map(function (s) { return s.trim(); })
           .filter(function (s) { return s.length > 0; });
-        var qty = $('.act-qty', card).value.trim();
+        var qty = normNum($('.act-qty', card).value);
         var unit = getUnit(card);
 
         L.push((i + 1) + ') ' + name);
@@ -997,7 +1031,7 @@
         var op = $('.mch-op', card).value.trim();
         var activePay = $('.segmented button.active', card);
         var pay = activePay ? activePay.dataset.pay : 'daily';
-        var hours = $('.mch-hours', card).value.trim();
+        var hours = normNum($('.mch-hours', card).value);
 
         L.push((i + 1) + ') ' + type);
         if (desc) L.push('   • العمل المنفذ: ' + desc);
@@ -1027,24 +1061,10 @@
     L.push('━━━━━━━━━━━━━━');
     L.push('_أُعد هذا التقرير إلكترونياً — التقرير اليومي للموقع_');
 
-    return L.join('\n');
+    return toHindi(L.join('\n'));
   }
 
-  function sendWhatsApp() {
-    var text = collectReport();
-    var url = 'https://wa.me/?text=' + encodeURIComponent(text);
-    var a = document.createElement('a');
-    a.href = url;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    showToast('تم فتح واتساب — أكّد الإرسال بنفسك');
-  }
-
-  function copyReport() {
-    var text = collectReport();
+  function copyText(text, okMsg) {
     function fallbackCopy() {
       var ta = document.createElement('textarea');
       ta.value = text;
@@ -1057,19 +1077,45 @@
       ta.setSelectionRange(0, ta.value.length);
       try {
         var ok = document.execCommand('copy');
-        showToast(ok ? 'تم نسخ نص التقرير' : 'لم يتم النسخ — حدد النص يدوياً');
+        showToast(ok ? okMsg : 'لم يتم النسخ — حدد النص يدوياً', 4000);
       } catch (e) {
-        showToast('لم يتم النسخ — حدد النص يدوياً');
+        showToast('لم يتم النسخ — حدد النص يدوياً', 4000);
       }
       document.body.removeChild(ta);
     }
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(function () {
-        showToast('تم نسخ نص التقرير');
+        showToast(okMsg, 4000);
       }).catch(fallbackCopy);
     } else {
       fallbackCopy();
     }
+  }
+
+  function openLink(url) {
+    var a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+
+  /* [إصلاح 5] التقرير الطويل: نسخ تلقائي بدل رابط قد يُقطع */
+  function sendWhatsApp() {
+    var text = collectReport();
+    if (text.length > WA_MAX_CHARS) {
+      copyText(text, 'التقرير طويل — تم نسخه. الصقه في واتساب');
+      openLink('https://wa.me/');
+      return;
+    }
+    openLink('https://wa.me/?text=' + encodeURIComponent(text));
+    showToast('تم فتح واتساب — أكّد الإرسال بنفسك');
+  }
+
+  function copyReport() {
+    copyText(collectReport(), 'تم نسخ نص التقرير');
   }
 
   function restore() {
@@ -1121,8 +1167,22 @@
     refreshActivities();
     refreshMachines();
 
-    document.addEventListener('input', saveState);
+    document.addEventListener('input', function (e) {
+      var t = e.target;
+      /* [إصلاح 12] تحويل الأرقام أثناء الكتابة */
+      if (t && t.classList && t.classList.contains('num-field')) {
+        var fixed = normNum(t.value);
+        if (fixed !== t.value) t.value = fixed;
+      }
+      saveState();
+    });
     document.addEventListener('change', saveState);
+
+    /* [إصلاح 2] حفظ فوري عند إغلاق الصفحة أو الانتقال لتطبيق آخر */
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'hidden') saveNow();
+    });
+    window.addEventListener('pagehide', saveNow);
 
     // ===== NEXT =====
     attachTap(document.getElementById('btnNext'), function () {
@@ -1167,6 +1227,7 @@
     // ===== RESET =====
     attachTap(document.getElementById('resetBtn'), function () {
       if (!confirm('هل تريد مسح جميع البيانات وبدء تقرير جديد؟')) return;
+      clearTimeout(saveTimer);
       try { localStorage.removeItem(STORAGE_KEY); } catch (err) {}
       window.location.reload();
     });
