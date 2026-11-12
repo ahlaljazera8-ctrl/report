@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0f2b46">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>التقرير اليومي للموقع — أهل الجزيرة</title>
+<style>
+  :root{
+    --navy:#0f2b46;
+    --navy-2:#1b4a72;
+    --amber:#e8a33d;
+    --green:#25D366;
+    --green-dark:#1da851;
+    --bg:#eef1f5;
+    --card:#ffffff;
+    --line:#d5dee8;
+    --text:#16232f;
+    --muted:#6b7f92;
+    --danger:#d64545;
+  }
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+
+  html,body{margin:0;padding:0;}
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:"Segoe UI","Noto Kufi Arabic","Droid Arabic Kufi",Tahoma,Arial,sans-serif;
+    font-size:17px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    overscroll-behavior-y:contain;
+  }
+
+  .app{
+    max-width:640px;
+    margin:0 auto;
+    padding-bottom:calc(120px + env(safe-area-inset-bottom));
+  }
+
+  .app-header{
+    background:linear-gradient(140deg,#0f2b46 0%,#1b4a72 100%);
+    color:#fff;
+    padding:16px 18px 20px;
+    border-bottom:4px solid var(--amber);
+  }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{
+    width:46px;height:46px;flex:0 0 auto;
+    border:2.5px solid var(--amber);
+    border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:19px;font-weight:800;color:var(--amber);
+    letter-spacing:-1px;
+  }
+  .brand-name{font-size:19px;font-weight:800;letter-spacing:.3px;}
+  .brand-sub{font-size:10px;letter-spacing:1.6px;color:#9dbdd8;font-weight:600;margin-top:2px;}
+  .app-title{font-size:22px;font-weight:800;margin:16px 0 4px;}
+  .app-subtitle{font-size:11px;letter-spacing:2.4px;color:var(--amber);font-weight:700;}
+
+  .stepper{
+    display:flex;
+    background:#fff;
+    border-bottom:1px solid var(--line);
+    padding:14px 6px 12px;
+    position:sticky;top:0;z-index:40;
+    box-shadow:0 2px 10px rgba(16,42,67,.06);
+  }
+  .stepper-item{
+    flex:1;
+    display:flex;flex-direction:column;align-items:center;gap:7px;
+    position:relative;
+    background:none;border:none;font-family:inherit;padding:0;
+    cursor:pointer;
+    touch-action:manipulation;
+  }
+  .stepper-item::before{
+    content:"";
+    position:absolute;
+    top:15px;
+    right:50%;
+    width:100%;
+    height:2px;
+    background:var(--line);
+    z-index:0;
+  }
+  .stepper-item:first-child::before{display:none;}
+  .stepper-circle{
+    width:32px;height:32px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:15px;font-weight:800;
+    background:#e6ecf3;color:var(--muted);
+    position:relative;z-index:1;
+    border:2px solid #e6ecf3;
+    transition:all .2s;
+  }
+  .stepper-label{font-size:11.5px;font-weight:700;color:var(--muted);}
+  .stepper-item.done .stepper-circle{background:var(--navy);border-color:var(--navy);color:#fff;}
+  .stepper-item.done .stepper-label{color:var(--navy);}
+  .stepper-item.active .stepper-circle{
+    background:var(--amber);border-color:var(--amber);color:#3a2500;
+    transform:scale(1.1);
+    box-shadow:0 0 0 4px rgba(232,163,61,.22);
+  }
+  .stepper-item.active .stepper-label{color:var(--navy);font-weight:800;}
+
+  main{padding:16px 16px 24px;}
+
+  .step{display:none;}
+  .step.active{display:block;animation:fade .22s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  .step-head{margin:2px 2px 14px;}
+  .step-head h2{margin:0 0 6px;font-size:20px;color:var(--navy);font-weight:800;}
+  .step-head p{margin:0;font-size:15px;color:var(--muted);line-height:1.6;}
+
+  .card{
+    background:var(--card);
+    border-radius:16px;
+    padding:16px;
+    box-shadow:0 1px 4px rgba(16,42,67,.08);
+    margin-bottom:14px;
+    border:1px solid #e6edf4;
+  }
+
+  .field{margin-bottom:14px;}
+  .field:last-child{margin-bottom:0;}
+  .field > label{
+    display:block;
+    font-size:15px;
+    font-weight:700;
+    color:#33475b;
+    margin-bottom:7px;
+  }
+  .hint{font-weight:400;color:var(--muted);font-size:13px;}
+  .req{color:var(--danger);}
+
+  input[type="text"],
+  input[type="date"],
+  input[type="number"],
+  textarea,
+  select{
+    width:100%;
+    min-height:52px;
+    padding:13px 14px;
+    font-size:17px;
+    font-family:inherit;
+    color:var(--text);
+    background:#fbfcfd;
+    border:2px solid var(--line);
+    border-radius:12px;
+    outline:none;
+    transition:border-color .15s,background .15s;
+    -webkit-appearance:none;
+    appearance:none;
+  }
+  textarea{resize:vertical;line-height:1.6;min-height:88px;}
+  select{
+    background-image:linear-gradient(45deg,transparent 50%,#7f95a8 50%),linear-gradient(135deg,#7f95a8 50%,transparent 50%);
+    background-position:calc(0% + 18px) calc(50% + 1px),calc(0% + 23px) calc(50% + 1px);
+    background-size:5px 5px,5px 5px;
+    background-repeat:no-repeat;
+    padding-left:38px;
+  }
+  input:focus,textarea:focus,select:focus{
+    border-color:var(--amber);
+    background:#fff;
+  }
+  input.invalid,textarea.invalid,select.invalid{
+    border-color:var(--danger);
+    background:#fff6f6;
+  }
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+  .grid2 .field{margin-bottom:0;}
+
+  .item-card{
+    background:#f8fbfe;
+    border:2px solid #e3eaf2;
+    border-radius:14px;
+    padding:14px;
+    margin-bottom:14px;
+  }
+  .item-card input,.item-card textarea,.item-card select{background:#fff;}
+  .item-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;}
+  .item-badge{
+    background:var(--navy);color:#fff;
+    font-size:13px;font-weight:800;
+    padding:6px 14px;border-radius:20px;
+  }
+  .del-btn{
+    background:#fdecec;color:var(--danger);
+    border:none;font-family:inherit;
+    font-size:14px;font-weight:800;
+    padding:9px 14px;border-radius:10px;
+    cursor:pointer;
+    min-height:40px;
+    touch-action:manipulation;
+  }
+  .del-btn:active{background:#f8d7d7;}
+
+  .segmented{display:flex;gap:10px;}
+  .segmented button{
+    flex:1;
+    min-height:54px;
+    padding:12px 8px;
+    border-radius:12px;
+    border:2px solid var(--line);
+    background:#fff;
+    font-family:inherit;
+    font-size:16px;
+    font-weight:800;
+    color:#4a5f73;
+    cursor:pointer;
+    transition:all .15s;
+    touch-action:manipulation;
+  }
+  .segmented button.active{
+    background:var(--navy);
+    border-color:var(--navy);
+    color:#fff;
+  }
+
+  .status-group{display:flex;flex-direction:column;gap:10px;}
+  .status-opt{display:block;position:relative;cursor:pointer;}
+  .status-opt input{position:absolute;opacity:0;pointer-events:none;width:0;height:0;}
+  .status-box{
+    display:flex;align-items:center;gap:13px;
+    padding:16px;
+    border:2px solid var(--line);
+    border-radius:14px;
+    background:#fff;
+    font-size:17px;font-weight:700;color:#3b5468;
+    transition:all .15s;
+    min-height:58px;
+  }
+  .status-box .dot{
+    width:22px;height:22px;flex:0 0 auto;
+    border-radius:50%;
+    border:2px solid #b9c9d8;
+    background:#fff;
+    transition:all .15s;
+  }
+  .status-opt input:checked + .status-box{
+    border-color:var(--navy);
+    background:#eef4fa;
+    color:var(--navy);
+  }
+  .status-opt input:checked + .status-box .dot{
+    border-color:var(--navy);
+    background:var(--navy);
+    box-shadow:inset 0 0 0 4px #fff;
+  }
+
+  .btn-add{
+    width:100%;
+    min-height:58px;
+    border-radius:14px;
+    border:2px dashed #9db8d0;
+    background:#fff;
+    color:var(--navy);
+    font-family:inherit;
+    font-size:17px;
+    font-weight:800;
+    cursor:pointer;
+    margin-bottom:8px;
+    transition:background .15s;
+    touch-action:manipulation;
+  }
+  .btn-add:active{background:#eef4fa;}
+
+  .empty{
+    text-align:center;
+    padding:26px 16px;
+    color:var(--muted);
+    font-size:15px;
+    border:2px dashed #d7e2ec;
+    border-radius:14px;
+    margin-bottom:14px;
+    background:#fafcfe;
+  }
+
+  .btn{
+    flex:1;
+    min-height:56px;
+    border-radius:14px;
+    border:none;
+    font-family:inherit;
+    font-size:18px;
+    font-weight:800;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    transition:transform .1s,background .15s;
+    padding:0 12px;
+    -webkit-user-select:none;
+    user-select:none;
+    touch-action:manipulation;
+  }
+  .btn:active{transform:scale(.985);}
+  .btn-primary{background:var(--navy);color:#fff;}
+  .btn-primary:active{background:var(--navy-2);}
+  .btn-ghost{background:#e8eef5;color:#3b5468;flex:0 0 36%;}
+  .btn-ghost:active{background:#dbe4ee;}
+  .btn-wa{
+    background:var(--green);color:#fff;
+    box-shadow:0 4px 14px rgba(37,211,102,.38);
+  }
+  .btn-wa:active{background:var(--green-dark);}
+  .btn-full{width:100%;flex:none;}
+
+  .btn-text{
+    display:block;
+    width:100%;
+    background:none;
+    border:none;
+    font-family:inherit;
+    font-size:15px;
+    font-weight:700;
+    color:var(--muted);
+    padding:16px 8px 6px;
+    cursor:pointer;
+    text-decoration:underline;
+    touch-action:manipulation;
+  }
+
+  .wa-note{
+    background:#eafaf0;
+    border:1.5px solid #b6e8cb;
+    color:#1a6b3f;
+    border-radius:12px;
+    padding:13px 15px;
+    font-size:14.5px;
+    font-weight:600;
+    line-height:1.6;
+    margin-bottom:14px;
+  }
+
+  .bottom-bar{
+    position:fixed;
+    bottom:0;left:0;right:0;
+    background:#fff;
+    border-top:1px solid var(--line);
+    padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+    box-shadow:0 -4px 18px rgba(16,42,67,.10);
+    z-index:100;
+    pointer-events:auto;
+  }
+  .bottom-inner{
+    max-width:640px;
+    margin:0 auto;
+    display:flex;
+    gap:12px;
+    pointer-events:auto;
+  }
+
+  .toast{
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%) scale(.9);
+    background:#16232f;
+    color:#fff;
+    padding:18px 26px;
+    border-radius:16px;
+    font-size:17px;
+    font-weight:700;
+    max-width:86%;
+    text-align:center;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s,transform .25s;
+    z-index:999;
+    box-shadow:0 10px 40px rgba(0,0,0,.45);
+  }
+  .toast.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+
+  .hidden{display:none !important;}
+
+  @media (max-width:360px){
+    body{font-size:16px;}
+    .app-title{font-size:20px;}
+    .stepper-label{font-size:10.5px;}
+    .btn{font-size:16px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-mark">أج</div>
+      <div>
+        <div class="brand-name">أهل الجزيرة</div>
+        <div class="brand-sub">AHL ALJAZEERA CONTRACTING</div>
+      </div>
+    </div>
+    <h1 class="app-title">التقرير اليومي للموقع</h1>
+    <div class="app-subtitle">DAILY SITE REPORT</div>
+  </header>
+
+  <nav class="stepper" id="stepper">
+    <button type="button" class="stepper-item active" data-step="1">
+      <span class="stepper-circle">1</span>
+      <span class="stepper-label">المعلومات</span>
+    </button>
+    <button type="button" class="stepper-item" data-step="2">
+      <span class="stepper-circle">2</span>
+      <span class="stepper-label">الأعمال</span>
+    </button>
+    <button type="button" class="stepper-item" data-step="3">
+      <span class="stepper-circle">3</span>
+      <span class="stepper-label">المعدات</span>
+    </button>
+    <button type="button" class="stepper-item" data-step="4">
+      <span class="stepper-circle">4</span>
+      <span class="stepper-label">الحالة</span>
+    </button>
+  </nav>
+
+  <main>
+
+    <section class="step active" data-step="1">
+      <div class="step-head">
+        <h2>معلومات اليوم</h2>
+        <p>أدخل اسم المشروع والتاريخ واسم المشرف.</p>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label for="project">اسم المشروع <span class="req">*</span></label>
+          <input id="project" type="text" placeholder="مثال: مشروع مجمع الجزيرة السكني" autocomplete="off">
+        </div>
+
+        <div class="field">
+          <label for="date">تاريخ العمل</label>
+          <input id="date" type="date">
+        </div>
+
+        <div class="field">
+          <label for="foreman">اسم المشرف / المراقب <span class="req">*</span></label>
+          <input id="foreman" type="text" placeholder="مثال: حسين العمري" autocomplete="off">
+        </div>
+      </div>
+    </section>
+
+    <section class="step" data-step="2">
+      <div class="step-head">
+        <h2>أعمال اليوم والعمال</h2>
+        <p>أضف كل نشاط منفذ في بطاقة منفصلة، مع أسماء العمال والكمية المنجزة.</p>
+      </div>
+
+      <div id="activitiesEmpty" class="empty hidden">لا توجد أنشطة مضافة</div>
+      <div id="activities"></div>
+
+      <button type="button" class="btn-add" id="addActivityBtn">+ إضافة نشاط جديد</button>
+    </section>
+
+    <section class="step" data-step="3">
+      <div class="step-head">
+        <h2>المعدات والآليات</h2>
+        <p>أضف كل معدة عملت في الموقع اليوم.</p>
+      </div>
+
+      <div id="machinesEmpty" class="empty">لم تتم إضافة أي معدة — اضغط الزر أدناه</div>
+      <div id="machines"></div>
+
+      <button type="button" class="btn-add" id="addMachineBtn">+ إضافة معدة</button>
+    </section>
+
+    <section class="step" data-step="4">
+      <div class="step-head">
+        <h2>حالة الموقع</h2>
+        <p>حدد حالة العمل اليوم وأضف أي ملاحظات.</p>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label>حالة العمل اليوم</label>
+          <div class="status-group">
+            <label class="status-opt">
+              <input type="radio" name="status" value="normal" checked>
+              <span class="status-box"><span class="dot"></span>عمل طبيعي</span>
+            </label>
+            <label class="status-opt">
+              <input type="radio" name="status" value="partial">
+              <span class="status-box"><span class="dot"></span>توقف جزئي</span>
+            </label>
+            <label class="status-opt">
+              <input type="radio" name="status" value="stopped">
+              <span class="status-box"><span class="dot"></span>توقف كامل</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label for="notes">ملاحظات (تأخيرات، معوقات، مشاكل)</label>
+          <textarea id="notes" rows="4" placeholder="اكتب أي ملاحظات تريد إبلاغ الإدارة بها..."></textarea>
+        </div>
+      </div>
+
+      <div class="wa-note">
+        اضغط الزر الأخضر بالأسفل لفتح واتساب، ثم قم بتأكيد الإرسال بنفسك من داخل التطبيق.
+      </div>
+
+      <button type="button" class="btn btn-ghost btn-full" id="copyBtn">نسخ نص التقرير</button>
+      <button type="button" class="btn-text" id="resetBtn">بدء تقرير جديد (مسح البيانات)</button>
+    </section>
+
+  </main>
+</div>
+
+<div class="bottom-bar">
+  <div class="bottom-inner">
+    <button type="button" class="btn btn-ghost hidden" id="btnPrev">السابق</button>
+    <button type="button" class="btn btn-primary" id="btnNext">التالي</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var STORAGE_KEY = 'ahl_aljazeera_daily_report_v1';
+  var TOTAL_STEPS = 4;
+  var currentStep = 1;
+  var saveTimer = null;
+
+  function $(sel, root) { return (root || document).querySelector(sel); }
+  function $$(sel, root) {
+    return Array.prototype.slice.call((root || document).querySelectorAll(sel));
+  }
+
+  function todayISO() {
+    var d = new Date();
+    var local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 10);
+  }
+
+  function isBlank(str) {
+    if (!str) return true;
+    return !String(str).replace(/[\s\u200b\u200e\u200f\ufeff\u00a0]/g, '').length;
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '—';
+    var d = new Date(iso + 'T00:00:00');
+    if (isNaN(d.getTime())) return iso;
+    var days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    var dd = String(d.getDate()).padStart(2, '0');
+    var mm = String(d.getMonth() + 1).padStart(2, '0');
+    var yyyy = d.getFullYear();
+    return days[d.getDay()] + ' ' + dd + '/' + mm + '/' + yyyy;
+  }
+
+  var toastTimer = null;
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    if (!t) { try { alert(msg); } catch(e){} return; }
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, 2600);
+  }
+
+  /* =========================================================
+     ROBUST TAP BINDING — يحل مشكلة "أول نقرة تُغلق الكيبورد"
+     ========================================================= */
+  function attachTap(el, handler) {
+    if (!el) return;
+    var lastRun = 0;
+    function run(e) {
+      if (e) {
+        if (e.cancelable) { try { e.preventDefault(); } catch(err){} }
+        try { e.stopPropagation(); } catch(err){}
+      }
+      var now = Date.now();
+      if (now - lastRun < 320) return;
+      lastRun = now;
+
+      // أغلق لوحة المفاتيح إن كانت مفتوحة
+      try {
+        if (document.activeElement && document.activeElement.blur) {
+          document.activeElement.blur();
+        }
+      } catch (err) {}
+
+      handler();
+    }
+    try {
+      el.addEventListener('touchend', run, { passive: false });
+    } catch (err) {
+      el.addEventListener('touchend', run, false);
+    }
+    el.addEventListener('click', run);
+    el.addEventListener('pointerup', run);
+  }
+
+  function saveState() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(doSave, 250);
+  }
+
+  function doSave() {
+    try {
+      var statusEl = $('input[name="status"]:checked');
+      var data = {
+        step: currentStep,
+        project: ($('#project') || {}).value || '',
+        date: ($('#date') || {}).value || '',
+        foreman: ($('#foreman') || {}).value || '',
+        notes: ($('#notes') || {}).value || '',
+        status: statusEl ? statusEl.value : 'normal',
+        activities: $$('#activities .item-card').map(function (c) {
+          return {
+            name: $('.act-name', c).value,
+            workers: $('.act-workers', c).value,
+            qty: $('.act-qty', c).value,
+            unit: $('.act-unit', c).value,
+            unitOther: $('.act-unit-other', c).value
+          };
+        }),
+        machines: $$('#machines .item-card').map(function (c) {
+          var activePay = $('.segmented button.active', c);
+          return {
+            type: $('.mch-type', c).value,
+            desc: $('.mch-desc', c).value,
+            op: $('.mch-op', c).value,
+            pay: activePay ? activePay.dataset.pay : 'daily',
+            hours: $('.mch-hours', c).value
+          };
+        })
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (e) {}
+  }
+
+  function createActivity(data) {
+    data = data || {};
+    var el = document.createElement('div');
+    el.className = 'item-card';
+
+    el.innerHTML =
+      '<div class="item-head">' +
+        '<span class="item-badge">نشاط</span>' +
+        '<button type="button" class="del-btn">حذف ✕</button>' +
+      '</div>' +
+      '<div class="field">' +
+        '<label>اسم النشاط / البند</label>' +
+        '<input type="text" class="act-name" autocomplete="off" placeholder="مثال: صب خرسانة الجدران">' +
+      '</div>' +
+      '<div class="field">' +
+        '<label>أسماء العمال <span class="hint">(اسم واحد في كل سطر)</span></label>' +
+        '<textarea class="act-workers" rows="3" placeholder="حسين&#10;علي&#10;محمد"></textarea>' +
+      '</div>' +
+      '<div class="grid2">' +
+        '<div class="field">' +
+          '<label>الكمية المنجزة</label>' +
+          '<input type="number" inputmode="decimal" step="any" min="0" class="act-qty" placeholder="0">' +
+        '</div>' +
+        '<div class="field">' +
+          '<label>الوحدة</label>' +
+          '<select class="act-unit">' +
+            '<option value="متر طولي">متر طولي</option>' +
+            '<option value="متر مكعب">متر مكعب</option>' +
+            '<option value="متر مربع">متر مربع</option>' +
+            '<option value="قطعة">قطعة</option>' +
+            '<option value="طن">طن</option>' +
+            '<option value="other">أخرى</option>' +
+          '</select>' +
+        '</div>' +
+      '</div>' +
+      '<div class="field unit-other-wrap hidden">' +
+        '<label>اكتب اسم الوحدة</label>' +
+        '<input type="text" class="act-unit-other" autocomplete="off" placeholder="مثال: عدد الأبواب">' +
+      '</div>';
+
+    $('.act-name', el).value = data.name || '';
+    $('.act-workers', el).value = data.workers || '';
+    $('.act-qty', el).value = data.qty || '';
+    $('.act-unit-other', el).value = data.unitOther || '';
+
+    var sel = $('.act-unit', el);
+    var wrap = $('.unit-other-wrap', el);
+    if (data.unit) {
+      sel.value = data.unit;
+      if (sel.value !== data.unit) { sel.value = 'other'; }
+    } else {
+      sel.value = 'متر مكعب';
+    }
+    if (sel.value === 'other') wrap.classList.remove('hidden');
+
+    sel.addEventListener('change', function () {
+      wrap.classList.toggle('hidden', sel.value !== 'other');
+      saveState();
+    });
+
+    attachTap($('.del-btn', el), function () {
+      el.parentNode.removeChild(el);
+      refreshActivities();
+      saveState();
+    });
+
+    return el;
+  }
+
+  function addActivity(data) {
+    var el = createActivity(data);
+    $('#activities').appendChild(el);
+    refreshActivities();
+    saveState();
+    return el;
+  }
+
+  function refreshActivities() {
+    var cards = $$('#activities .item-card');
+    cards.forEach(function (c, i) {
+      $('.item-badge', c).textContent = 'نشاط ' + (i + 1);
+    });
+    var emptyEl = $('#activitiesEmpty');
+    if (emptyEl) emptyEl.classList.toggle('hidden', cards.length > 0);
+  }
+
+  function createMachine(data) {
+    data = data || {};
+    var el = document.createElement('div');
+    el.className = 'item-card';
+
+    el.innerHTML =
+      '<div class="item-head">' +
+        '<span class="item-badge">معدة</span>' +
+        '<button type="button" class="del-btn">حذف ✕</button>' +
+      '</div>' +
+      '<div class="field">' +
+        '<label>نوع المعدة</label>' +
+        '<select class="mch-type">' +
+          '<option value="شفل / لودر">شفل / لودر</option>' +
+          '<option value="حفارة">حفارة</option>' +
+          '<option value="شاحنة قلاب">شاحنة قلاب</option>' +
+          '<option value="مدحلة (رصاصة)">مدحلة (رصاصة)</option>' +
+          '<option value="ونش / رافعة">ونش / رافعة</option>' +
+          '<option value="صهريج مياه (وايت)">صهريج مياه (وايت)</option>' +
+          '<option value="بوبكات">بوبكات</option>' +
+          '<option value="أخرى">أخرى</option>' +
+        '</select>' +
+      '</div>' +
+      '<div class="field">' +
+        '<label>وصف العمل المنفذ</label>' +
+        '<input type="text" class="mch-desc" autocomplete="off" placeholder="مثال: ردم الطبقة الأولى من التربة">' +
+      '</div>' +
+      '<div class="field">' +
+        '<label>اسم المشغل</label>' +
+        '<input type="text" class="mch-op" autocomplete="off" placeholder="مثال: حسين">' +
+      '</div>' +
+      '<div class="field">' +
+        '<label>طريقة الدفع</label>' +
+        '<div class="segmented">' +
+          '<button type="button" data-pay="hourly">بالساعة</button>' +
+          '<button type="button" data-pay="daily">مقطوعة / يومية</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="field hours-wrap hidden">' +
+        '<label>عدد ساعات العمل</label>' +
+        '<input type="number" inputmode="decimal" step="any" min="0" class="mch-hours" placeholder="0">' +
+      '</div>';
+
+    $('.mch-desc', el).value = data.desc || '';
+    $('.mch-op', el).value = data.op || '';
+    $('.mch-hours', el).value = data.hours || '';
+
+    var typeSel = $('.mch-type', el);
+    if (data.type) {
+      typeSel.value = data.type;
+      if (typeSel.value !== data.type) typeSel.value = 'أخرى';
+    }
+
+    var pay = (data.pay === 'hourly') ? 'hourly' : 'daily';
+    var btns = $$('.segmented button', el);
+    var hoursWrap = $('.hours-wrap', el);
+
+    btns.forEach(function (b) {
+      b.classList.toggle('active', b.dataset.pay === pay);
+    });
+    hoursWrap.classList.toggle('hidden', pay !== 'hourly');
+
+    btns.forEach(function (b) {
+      attachTap(b, function () {
+        btns.forEach(function (x) { x.classList.remove('active'); });
+        b.classList.add('active');
+        hoursWrap.classList.toggle('hidden', b.dataset.pay !== 'hourly');
+        saveState();
+      });
+    });
+
+    attachTap($('.del-btn', el), function () {
+      el.parentNode.removeChild(el);
+      refreshMachines();
+      saveState();
+    });
+
+    return el;
+  }
+
+  function addMachine(data) {
+    var el = createMachine(data);
+    $('#machines').appendChild(el);
+    refreshMachines();
+    saveState();
+    return el;
+  }
+
+  function refreshMachines() {
+    var cards = $$('#machines .item-card');
+    cards.forEach(function (c, i) {
+      $('.item-badge', c).textContent = 'معدة ' + (i + 1);
+    });
+    var emptyEl = $('#machinesEmpty');
+    if (emptyEl) emptyEl.classList.toggle('hidden', cards.length > 0);
+  }
+
+  function showStep(stepNumber) {
+    var n = Number(stepNumber);
+    if (isNaN(n)) n = 1;
+    if (n < 1) n = 1;
+    if (n > TOTAL_STEPS) n = TOTAL_STEPS;
+    currentStep = n;
+
+    var stepEls = $$('.step');
+    for (var i = 0; i < stepEls.length; i++) {
+      var s = stepEls[i];
+      var sStep = Number(s.getAttribute('data-step'));
+      if (sStep === currentStep) {
+        s.classList.add('active');
+        s.style.display = 'block';
+      } else {
+        s.classList.remove('active');
+        s.style.display = 'none';
+      }
+    }
+
+    var stepperEls = $$('.stepper-item');
+    for (var j = 0; j < stepperEls.length; j++) {
+      var item = stepperEls[j];
+      var itemStep = Number(item.getAttribute('data-step'));
+      item.classList.toggle('active', itemStep === currentStep);
+      item.classList.toggle('done', itemStep < currentStep);
+    }
+
+    var prevBtn = document.getElementById('btnPrev');
+    var nextBtn = document.getElementById('btnNext');
+
+    if (prevBtn) {
+      if (currentStep === 1) {
+        prevBtn.classList.add('hidden');
+      } else {
+        prevBtn.classList.remove('hidden');
+      }
+    }
+
+    if (nextBtn) {
+      if (currentStep === TOTAL_STEPS) {
+        nextBtn.textContent = 'إرسال التقرير عبر WhatsApp';
+        nextBtn.className = 'btn btn-wa';
+      } else {
+        nextBtn.textContent = 'التالي';
+        nextBtn.className = 'btn btn-primary';
+      }
+    }
+
+    try { window.scrollTo(0, 0); } catch (e) {}
+
+    saveState();
+  }
+
+  function markInvalid(el) {
+    if (!el) return;
+    el.classList.add('invalid');
+    try { el.focus(); } catch (e) {}
+    try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+    setTimeout(function () { el.classList.remove('invalid'); }, 2200);
+  }
+
+  function validateStep(step) {
+    if (step === 1) {
+      var p = document.getElementById('project');
+      if (p && isBlank(p.value)) {
+        showToast('يرجى إدخال اسم المشروع');
+        markInvalid(p);
+        return false;
+      }
+
+      var d = document.getElementById('date');
+      if (d && !d.value) {
+        // ملء تلقائي — بدل إظهار خطأ
+        d.value = todayISO();
+      }
+
+      var f = document.getElementById('foreman');
+      if (f && isBlank(f.value)) {
+        showToast('يرجى إدخال اسم المشرف');
+        markInvalid(f);
+        return false;
+      }
+    }
+
+    if (step === 2) {
+      var cards = $$('#activities .item-card');
+      if (cards.length === 0) {
+        showToast('أضف نشاطاً واحداً على الأقل');
+        return false;
+      }
+      for (var i = 0; i < cards.length; i++) {
+        var nameEl = $('.act-name', cards[i]);
+        if (nameEl && isBlank(nameEl.value)) {
+          showToast('يرجى إدخال اسم النشاط رقم ' + (i + 1));
+          markInvalid(nameEl);
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  function getUnit(card) {
+    var sel = $('.act-unit', card);
+    if (!sel) return 'وحدة';
+    if (sel.value === 'other') {
+      var other = $('.act-unit-other', card).value.trim();
+      return other || 'وحدة';
+    }
+    return sel.value;
+  }
+
+  function collectReport() {
+    var L = [];
+
+    var project = ($('#project') || {}).value || '';
+    project = project.trim();
+    var dateISO = ($('#date') || {}).value || todayISO();
+    var foreman = ($('#foreman') || {}).value || '';
+    foreman = foreman.trim();
+
+    L.push('*التقرير اليومي للموقع*');
+    L.push('*شركة أهل الجزيرة*');
+    L.push('━━━━━━━━━━━━━━');
+    L.push('');
+
+    L.push('*١) معلومات عامة*');
+    L.push('• المشروع: ' + (project || '—'));
+    L.push('• التاريخ: ' + formatDate(dateISO));
+    L.push('• المشرف: ' + (foreman || '—'));
+    L.push('');
+
+    L.push('*٢) أعمال اليوم والعمال*');
+    var acts = $$('#activities .item-card');
+    if (acts.length === 0) {
+      L.push('لا توجد أنشطة مسجلة.');
+    } else {
+      acts.forEach(function (card, i) {
+        var name = $('.act-name', card).value.trim() || 'نشاط بدون اسم';
+        var workersRaw = $('.act-workers', card).value;
+        var workers = workersRaw.split('\n')
+          .map(function (s) { return s.trim(); })
+          .filter(function (s) { return s.length > 0; });
+        var qty = $('.act-qty', card).value.trim();
+        var unit = getUnit(card);
+
+        L.push((i + 1) + ') ' + name);
+        L.push('   • العمال (' + workers.length + '): ' + (workers.length ? workers.join('، ') : '—'));
+        if (qty) L.push('   • الكمية المنجزة: ' + qty + ' ' + unit);
+      });
+    }
+    L.push('');
+
+    L.push('*٣) المعدات والآليات*');
+    var machines = $$('#machines .item-card');
+    if (machines.length === 0) {
+      L.push('لا توجد معدات مسجلة.');
+    } else {
+      machines.forEach(function (card, i) {
+        var type = $('.mch-type', card).value;
+        var desc = $('.mch-desc', card).value.trim();
+        var op = $('.mch-op', card).value.trim();
+        var activePay = $('.segmented button.active', card);
+        var pay = activePay ? activePay.dataset.pay : 'daily';
+        var hours = $('.mch-hours', card).value.trim();
+
+        L.push((i + 1) + ') ' + type);
+        if (desc) L.push('   • العمل المنفذ: ' + desc);
+        if (op) L.push('   • المشغل: ' + op);
+
+        if (pay === 'hourly') {
+          L.push('   • الدفع: بالساعة' + (hours ? ' — عدد الساعات: ' + hours : ''));
+        } else {
+          L.push('   • الدفع: مقطوعة / يومية');
+        }
+      });
+    }
+    L.push('');
+
+    L.push('*٤) حالة الموقع*');
+    var statusEl = $('input[name="status"]:checked');
+    var stVal = statusEl ? statusEl.value : 'normal';
+    var stText = (stVal === 'partial') ? 'توقف جزئي'
+               : (stVal === 'stopped') ? 'توقف كامل'
+               : 'عمل طبيعي';
+    L.push('• الحالة: ' + stText);
+
+    var notes = ($('#notes') || {}).value || '';
+    notes = notes.trim();
+    L.push('• ملاحظات: ' + (notes || 'لا توجد ملاحظات'));
+    L.push('');
+    L.push('━━━━━━━━━━━━━━');
+    L.push('_أُعد هذا التقرير إلكترونياً — التقرير اليومي للموقع_');
+
+    return L.join('\n');
+  }
+
+  function sendWhatsApp() {
+    var text = collectReport();
+    var url = 'https://wa.me/?text=' + encodeURIComponent(text);
+    var a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    showToast('تم فتح واتساب — أكّد الإرسال بنفسك');
+  }
+
+  function copyReport() {
+    var text = collectReport();
+    function fallbackCopy() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.top = '-1000px';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, ta.value.length);
+      try {
+        var ok = document.execCommand('copy');
+        showToast(ok ? 'تم نسخ نص التقرير' : 'لم يتم النسخ — حدد النص يدوياً');
+      } catch (e) {
+        showToast('لم يتم النسخ — حدد النص يدوياً');
+      }
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        showToast('تم نسخ نص التقرير');
+      }).catch(fallbackCopy);
+    } else {
+      fallbackCopy();
+    }
+  }
+
+  function restore() {
+    var raw = null;
+    try { raw = localStorage.getItem(STORAGE_KEY); } catch (e) { return false; }
+    if (!raw) return false;
+
+    var data;
+    try { data = JSON.parse(raw); } catch (e) { return false; }
+    if (!data || typeof data !== 'object') return false;
+
+    if ($('#project')) $('#project').value = data.project || '';
+    if ($('#date')) $('#date').value = data.date || todayISO();
+    if ($('#foreman')) $('#foreman').value = data.foreman || '';
+    if ($('#notes')) $('#notes').value = data.notes || '';
+
+    $$('input[name="status"]').forEach(function (r) {
+      r.checked = (r.value === (data.status || 'normal'));
+    });
+
+    $('#activities').innerHTML = '';
+    (data.activities || []).forEach(function (a) {
+      $('#activities').appendChild(createActivity(a));
+    });
+
+    $('#machines').innerHTML = '';
+    (data.machines || []).forEach(function (m) {
+      $('#machines').appendChild(createMachine(m));
+    });
+
+    refreshActivities();
+    refreshMachines();
+
+    var st = parseInt(data.step, 10);
+    currentStep = (st >= 1 && st <= TOTAL_STEPS) ? st : 1;
+    return true;
+  }
+
+  function init() {
+    if ($('#date') && !$('#date').value) $('#date').value = todayISO();
+
+    var restored = restore();
+    if (!restored) currentStep = 1;
+
+    if ($$('#activities .item-card').length === 0) {
+      addActivity();
+    }
+
+    refreshActivities();
+    refreshMachines();
+
+    document.addEventListener('input', saveState);
+    document.addEventListener('change', saveState);
+
+    // ===== NEXT =====
+    attachTap(document.getElementById('btnNext'), function () {
+      if (currentStep === TOTAL_STEPS) {
+        sendWhatsApp();
+        return;
+      }
+      if (!validateStep(currentStep)) return;
+      showStep(currentStep + 1);
+    });
+
+    // ===== PREVIOUS =====
+    attachTap(document.getElementById('btnPrev'), function () {
+      showStep(currentStep - 1);
+    });
+
+    // ===== STEPPER (رجوع فقط) =====
+    $$('.stepper-item').forEach(function (item) {
+      attachTap(item, function () {
+        var n = Number(item.getAttribute('data-step'));
+        if (isNaN(n)) return;
+        if (n < currentStep) showStep(n);
+      });
+    });
+
+    // ===== ADD ACTIVITY =====
+    attachTap(document.getElementById('addActivityBtn'), function () {
+      var el = addActivity();
+      var input = $('.act-name', el);
+      if (input) setTimeout(function () { input.focus(); }, 120);
+    });
+
+    // ===== ADD MACHINE =====
+    attachTap(document.getElementById('addMachineBtn'), function () {
+      var el = addMachine();
+      try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (err) {}
+    });
+
+    // ===== COPY =====
+    attachTap(document.getElementById('copyBtn'), copyReport);
+
+    // ===== RESET =====
+    attachTap(document.getElementById('resetBtn'), function () {
+      if (!confirm('هل تريد مسح جميع البيانات وبدء تقرير جديد؟')) return;
+      try { localStorage.removeItem(STORAGE_KEY); } catch (err) {}
+      window.location.reload();
+    });
+
+    showStep(currentStep);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();
+</script>
+</body>
+</html>
