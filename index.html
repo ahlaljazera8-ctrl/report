@@ -540,6 +540,7 @@
   var WA_MAX_CHARS = 3000;
   var currentStep = 1;
   var saveTimer = null;
+  var sentFlag = false; // true بعد الإرسال؛ التقرير القادم يبدأ فارغاً
 
   function $(sel, root) { return (root || document).querySelector(sel); }
   function $$(sel, root) {
@@ -654,6 +655,7 @@
       var statusEl = $('input[name="status"]:checked');
       var data = {
         step: currentStep,
+        sent: sentFlag,
         project: ($('#project') || {}).value || '',
         date: ($('#date') || {}).value || '',
         foreman: ($('#foreman') || {}).value || '',
@@ -1105,6 +1107,8 @@
   /* [إصلاح 5] التقرير الطويل: نسخ تلقائي بدل رابط قد يُقطع */
   function sendWhatsApp() {
     var text = collectReport();
+    sentFlag = true;
+    saveNow();
     if (text.length > WA_MAX_CHARS) {
       copyText(text, 'التقرير طويل — تم نسخه. الصقه في واتساب');
       openLink('https://wa.me/');
@@ -1126,6 +1130,15 @@
     var data;
     try { data = JSON.parse(raw); } catch (e) { return false; }
     if (!data || typeof data !== 'object') return false;
+
+    // تقرير سبق إرساله: ابدأ تقريراً جديداً، مع إبقاء المشروع والمشرف
+    if (data.sent) {
+      if ($('#project')) $('#project').value = data.project || '';
+      if ($('#foreman')) $('#foreman').value = data.foreman || '';
+      if ($('#date')) $('#date').value = todayISO();
+      currentStep = 1;
+      return true;
+    }
 
     if ($('#project')) $('#project').value = data.project || '';
     if ($('#date')) $('#date').value = data.date || todayISO();
@@ -1168,6 +1181,7 @@
     refreshMachines();
 
     document.addEventListener('input', function (e) {
+      sentFlag = false;
       var t = e.target;
       /* [إصلاح 12] تحويل الأرقام أثناء الكتابة */
       if (t && t.classList && t.classList.contains('num-field')) {
@@ -1176,7 +1190,7 @@
       }
       saveState();
     });
-    document.addEventListener('change', saveState);
+    document.addEventListener('change', function () { sentFlag = false; saveState(); });
 
     /* [إصلاح 2] حفظ فوري عند إغلاق الصفحة أو الانتقال لتطبيق آخر */
     document.addEventListener('visibilitychange', function () {
